@@ -1,17 +1,15 @@
 import cv2
-
 import pytesseract
 
 pytesseract.pytesseract.tesseract_cmd = '/usr/local/Cellar/tesseract/5.2.0/bin/tesseract'
 
-img = cv2.imread('/Users/timurmitrofanov/Desktop/Code/OpenCV/Images/Example_Google_Vision.png')
+img = cv2.imread('/Users/timurmitrofanov/Desktop/Code/OpenCV/Images/RussianCursive.png')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
 config = r'--oem 3 --psm 6'
 print(pytesseract.image_to_string(img, lang='rus', config=config)) # Other languages can be found at https://tesseract-ocr.github.io/tessdoc/Data-Files.html
 
 data = pytesseract.image_to_data(img, lang='rus', config=config) 
-
 
 for i, el in enumerate(data.splitlines()):
 	if i == 0:
