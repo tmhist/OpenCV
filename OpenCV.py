@@ -6,7 +6,7 @@ import json
 # Path to connect tesseract
 
 # Connecting photo
-img = cv2.imread('/Users/path/Image.jpg')
+img = cv2.imread('/Users/timurmitrofanov/Desktop/Herder/TestImage.png')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 # Configures Tesseract OCR with specific settings for text extraction.
