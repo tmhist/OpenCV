@@ -1,65 +1,70 @@
 import cv2
 import pytesseract
-import xml.etree.ElementTree as ET
-import json
 
-# Path to connect tesseract
+# Path to Tesseract OCR executable
+pytesseract.pytesseract_cmd = '/usr/local/bin/tesseract'
 
-# Connecting photo
+pytesseract.pytesseract.tessdata_dir_config = '--tessdata-dir "/usr/local/share/tessdata"'
+
+# Load the image
 img = cv2.imread('/Users/timurmitrofanov/Desktop/photo_2022-10-03_18-31-07.jpg')
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
-# Configures Tesseract OCR with specific settings for text extraction.
+# Tesseract configuration
 config = r'--oem 3 --psm 6'
-print(pytesseract.image_to_string(img, config=config))
 
-data = pytesseract.image_to_data(img, config=config)
+# # Perform text recognition
+print(pytesseract.image_to_string(img, lang='rus', config=config)) 
 
-recognized_text = []
+# Other languages can be found at https://tesseract-ocr.github.io/tessdoc/Data-Files.html
+# Use the following command in Terminal in order to add new language: sudo mv /Users/Path_to_eng.traineddata /usr/local/share/tessdata/
 
-# Create XML file
-root = ET.Element("document")
-page = ET.SubElement(root, "page")
+data = pytesseract.image_to_data(img, lang='rus', config=config)
 
 # Iterate through the data extracted from the image.
 for i, el in enumerate(data.splitlines()):
     if i == 0:
         continue
-
     el = el.split()
     try:
-        # Creates captions on the picture
         x, y, w, h = int(el[6]), int(el[7]), int(el[8]), int(el[9])
         cv2.rectangle(img, (x, y), (w + x, h + y), (0, 0, 255), 1)
-        text = el[11]
-        cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 1)
-
-        # Add recognized text to the list
-        recognized_text.append({"text": text, "x": x, "y": y, "width": w, "height": h})
-
-        # Add recognized text to XML
-        word = ET.SubElement(page, "word")
-        word.set("x", str(x))
-        word.set("y", str(y))
-        word.set("width", str(w))
-        word.set("height", str(h))
-        word.text = text
+        cv2.putText(img, el[11], (x, y), cv2.FONT_HERSHEY_COMPLEX, 1, 1)
     except IndexError:
-        print("Operation was missed")
+        print("Done")
 
-# Save recognized text to TXT file
-with open("recognized_text.txt", "w") as txt_file:
-    for item in recognized_text:
-        txt_file.write(f"{item['text']}\n")
-
-# Save recognized text to JSON file
-with open("recognized_text.json", "w") as json_file:
-    json.dump(recognized_text, json_file, indent=4)
-
-# Save XML to a file
-tree = ET.ElementTree(root)
-tree.write("recognized_layout.xml")
-
-# Displays results
+# Display results
 cv2.imshow('Result', img)
 cv2.waitKey(0)
+
+
+
+############
+# Save recognized text to a TXT file
+with open("recognized_text.txt", "w", encoding="utf-8") as txt_file:
+    txt_file.write(recognized_text)
+
+# Extract layout information
+data = pytesseract.image_to_data(img, lang='rus', config=config)
+recognized_layout = []
+
+# Save recognized layout to a JSON file
+with open("recognized_layout.json", "w", encoding="utf-8") as json_file:
+    json.dump(recognized_layout, json_file, ensure_ascii=False, indent=4)
+
+# Create XML file for layout information
+root = ET.Element("document")
+page = ET.SubElement(root, "page")
+
+# Iterate through recognized layout and add to XML
+for item in recognized_layout:
+    word = ET.SubElement(page, "word")
+    word.set("x", str(item["x"]))
+    word.set("y", str(item["y"]))
+    word.set("width", str(item["width"]))
+    word.set("height", str(item["height"]))
+    word.text = item["word"]
+
+# Save XML layout information to a file
+tree = ET.ElementTree(root)
+tree.write("recognized_layout.xml", encoding="utf-8")
