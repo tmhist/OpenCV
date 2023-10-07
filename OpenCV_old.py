@@ -5,7 +5,7 @@ import pytesseract
 pytesseract.pytesseract_cmd = '/usr/local/bin/tesseract'
 
 # Load the image
-img = cv2.imread('/Users/path')
+img = cv2.imread('/Users/timurmitrofanov/Desktop/111.jpg')
 img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
 # Tesseract configuration
